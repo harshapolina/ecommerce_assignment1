@@ -27,10 +27,8 @@ connectDB()
   .then(() => {
     const PORT = process.env.PORT || 3001
     app.listen(PORT, () => {
-      console.log('Server running on port', PORT)
     })
   })
   .catch((e) => {
-    console.error('Database connection failed:', e)
   })
 

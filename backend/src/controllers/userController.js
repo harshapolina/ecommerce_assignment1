@@ -87,10 +87,7 @@ export const login = async (req, res) => {
       return res.status(403).json({ error: 'account is already in use on another device' })
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-key-change-in-production'
-    if (!process.env.JWT_SECRET) {
-      console.warn('Warning: JWT_SECRET not set in environment variables.')
-    }
+    const jwtSecret = process.env.JWT_SECRET 
     const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '7d' })
     user.token = token
     await user.save()
