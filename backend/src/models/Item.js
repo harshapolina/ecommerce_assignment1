@@ -17,7 +17,5 @@ const itemSchema = new mongoose.Schema({
   }
 })
 
-itemSchema.index({ status: 1, _id: 1 })
-
 export default mongoose.model('Item', itemSchema)
 

@@ -111,8 +111,12 @@ export const getMyCart = async (req, res) => {
       return res.status(401).json({ error: 'authentication required' })
     }
 
-    // Optimize: Query cart directly using userId instead of querying user first
-    const cart = await Cart.findOne({ userId: req.user._id, status: 'active' })
+    const user = await User.findById(req.user._id)
+    if (!user) {
+      return res.status(404).json({ error: 'user not found' })
+    }
+
+    const cart = await Cart.findOne({ userId: user._id, status: 'active' })
     if (!cart) {
       return res.json([])
     }

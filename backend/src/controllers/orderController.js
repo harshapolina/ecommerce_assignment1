@@ -9,8 +9,12 @@ export const createOrder = async (req, res) => {
       return res.status(401).json({ error: 'authentication required' })
     }
 
+    const user = await User.findById(req.user._id)
+    if (!user) {
+      return res.status(404).json({ error: 'user not found' })
+    }
 
-    const cart = await Cart.findOne({ userId: req.user._id, status: 'active' })
+    const cart = await Cart.findOne({ userId: user._id, status: 'active' })
     if (!cart) {
       return res.status(404).json({ error: 'cart not found' })
     }
@@ -20,15 +24,17 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'cart is empty' })
     }
 
- 
-    const [order] = await Promise.all([
-      Order.create({
-        userId: req.user._id,
-        cartId: cart._id
-      }),
-      Cart.updateOne({ _id: cart._id }, { status: 'completed' }),
-      User.updateOne({ _id: req.user._id }, { cartId: null })
-    ])
+    const order = new Order({
+      userId: user._id,
+      cartId: cart._id
+    })
+    await order.save()
+
+    cart.status = 'completed'
+    await cart.save()
+
+    user.cartId = null
+    await user.save()
 
     res.status(201).json({ id: order._id, userId: order.userId, cartId: order.cartId, createdAt: order.createdAt })
   } catch (error) {
@@ -52,36 +58,24 @@ export const getOrders = async (req, res) => {
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
-      .lean()
 
-    const cartIds = orders.map(order => order.cartId)
-    const allCartItems = await CartItem.find({ cartId: { $in: cartIds } })
-      .populate('itemId', 'name')
-      .lean()
+    const ordersWithItems = await Promise.all(
+      orders.map(async (order) => {
+      const cartItems = await CartItem.find({ cartId: order.cartId }).populate('itemId', 'name')
+        const items = cartItems.map(cartItem => ({
+          itemId: cartItem.itemId?._id || cartItem.itemId,
+          name: cartItem.itemId?.name || 'Unknown',
+          quantity: cartItem.quantity || 1
+        }))
 
-    const cartItemsMap = new Map()
-    allCartItems.forEach(cartItem => {
-      if (!cartItemsMap.has(cartItem.cartId.toString())) {
-        cartItemsMap.set(cartItem.cartId.toString(), [])
-      }
-      cartItemsMap.get(cartItem.cartId.toString()).push(cartItem)
-    })
-
-    const ordersWithItems = orders.map(order => {
-      const cartItems = cartItemsMap.get(order.cartId.toString()) || []
-      const items = cartItems.map(cartItem => ({
-        itemId: cartItem.itemId?._id || cartItem.itemId,
-        name: cartItem.itemId?.name || 'Unknown',
-        quantity: cartItem.quantity || 1
-      }))
-
-      return {
-        id: order._id,
+        return {
+          id: order._id,
         _id: order._id,
         createdAt: order.createdAt,
         items
-      }
-    })
+        }
+      })
+    )
 
     res.json(ordersWithItems)
   } catch (err) {
