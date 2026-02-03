@@ -8,7 +8,7 @@ const connectDB = async () => {
   if (!mongoURI) {
     throw new Error('MONGODB_URI is not defined')
   }
-  await mongoose.connect(mongoURI, options)
+  await mongoose.connect(mongoURI)
 }
 
 export default connectDB
