@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react'
 import { getCartItems, getItems, removeFromCart } from '../utils/api.js'
 import './CartModal.css'
 
@@ -7,7 +6,6 @@ function CartModal({ isOpen, onClose }) {
   const [cartItems, setCartItems] = useState([])
   const [itemsData, setItemsData] = useState({})
   const [loading, setLoading] = useState(true)
-  const removingItems = useRef(new Set()) // Track items being removed
 
   useEffect(() => {
     if (isOpen) {
@@ -36,34 +34,11 @@ function CartModal({ isOpen, onClose }) {
   }
 
   const handleRemoveItem = async (itemId) => {
-    // Prevent duplicate clicks
-    if (removingItems.current.has(itemId)) {
-      return
-    }
-
-    removingItems.current.add(itemId)
-
-    const itemName = cartItems.find(ci => ci.itemId === itemId)?.itemName || 'Item'
-    
-    // Optimistic update - remove from UI immediately
-    setCartItems(prev => prev.filter(item => item.itemId !== itemId))
-    
-    // Show loading toast
-    const toastId = toast.loading(`Removing ${itemName}...`)
-
     try {
       await removeFromCart(itemId)
-      // Refresh cart data to ensure consistency
       await fetchCartData()
-      toast.success(`${itemName} removed from cart`, { id: toastId })
     } catch (error) {
-      // Revert optimistic update on error
-      await fetchCartData()
-      toast.error(error.message || 'Failed to remove item', { id: toastId })
-    } finally {
-      setTimeout(() => {
-        removingItems.current.delete(itemId)
-      }, 500)
+      alert('Failed to remove item')
     }
   }
 

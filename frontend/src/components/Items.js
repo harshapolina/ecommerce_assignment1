@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { getItems, addToCart, getCartItems, getOrders, checkout } from '../utils/api.js'
@@ -15,7 +15,6 @@ function Items() {
   const [showCart, setShowCart] = useState(false)
   const [showOrderHistory, setShowOrderHistory] = useState(false)
   const navigate = useNavigate()
-  const processingItems = useRef(new Set()) // Track items being processed
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -47,34 +46,16 @@ function Items() {
   }
 
   const handleAddToCart = async (itemId, itemName) => {
-    const id = itemId?._id || itemId?.id || itemId
-    if (!id) {
-      toast.error('Invalid item')
-      return
-    }
-
-    // Prevent duplicate clicks on the same item
-    if (processingItems.current.has(id)) {
-      return
-    }
-
-    processingItems.current.add(id)
-
-    // Show loading toast immediately for instant feedback
-    const toastId = toast.loading(`Adding ${itemName || 'Item'} to cart...`)
-    
     try {
+      const id = itemId?._id || itemId?.id || itemId
+      if (!id) {
+        toast.error('Invalid item')
+        return
+      }
       await addToCart(id)
-      // Update toast to success
-      toast.success(`${itemName || 'Item'} added to cart`, { id: toastId })
+      toast.success(`${itemName || 'Item'} added to cart`)
     } catch (error) {
-      // Update toast to error
-      toast.error(error.message || 'Failed to add to cart', { id: toastId })
-    } finally {
-      // Remove from processing set after a short delay to prevent rapid clicks
-      setTimeout(() => {
-        processingItems.current.delete(id)
-      }, 500)
+      toast.error(error.message || 'Failed to add to cart')
     }
   }
 
@@ -86,29 +67,13 @@ function Items() {
     setShowOrderHistory(true)
   }
 
-  const checkoutInProgress = useRef(false)
-  
   const handleCheckout = async () => {
-    // Prevent multiple checkout attempts
-    if (checkoutInProgress.current) {
-      return
-    }
-
-    checkoutInProgress.current = true
-
-    // Show loading toast immediately
-    const toastId = toast.loading('Placing your order...')
-    
     try {
       await checkout()
-      toast.success('Order placed successfully!', { id: toastId })
+      toast.success('Order placed')
       setShowCart(false)
     } catch (error) {
-      toast.error(error.message || 'Failed to checkout', { id: toastId })
-    } finally {
-      setTimeout(() => {
-        checkoutInProgress.current = false
-      }, 1000)
+      toast.error('Failed to checkout')
     }
   }
 

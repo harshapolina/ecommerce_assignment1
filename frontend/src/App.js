@@ -17,11 +17,7 @@ function App() {
       </Routes>
     </Router>
       <Toaster 
-        position="top-right"
-        richColors
-        closeButton
-        duration={3000}
-        visibleToasts={3}
+        position="top-right" 
         toastOptions={{
           style: {
             background: '#333',
@@ -33,14 +29,12 @@ function App() {
           success: {
             style: {
               background: '#28a745'
-            },
-            duration: 2000
+            }
           },
           error: {
             style: {
               background: '#dc3545'
-            },
-            duration: 3000
+            }
           }
         }}
       />
