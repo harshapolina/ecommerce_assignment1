@@ -29,6 +29,7 @@ function Navbar({ onCartClick, onHistoryClick, onCheckoutClick }) {
                <button className="nav-action-btn" onClick={onCartClick}>Cart</button>
               <button className="nav-action-btn" onClick={onHistoryClick}>Order History</button>
               <button className="nav-action-btn logout" onClick={handleLogout}>Logout</button>
+              <button > click me</button>
             </>
           ) : (
             <Link to="/login" className="nav-action-btn">Login</Link>

@@ -1,0 +1,6 @@
+
+data
+return(
+    <ul>data.map(<li>user=>user.name</li>)</ul>
+    )
+

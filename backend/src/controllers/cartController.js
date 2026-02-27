@@ -185,4 +185,3 @@ export const getCarts = async (req, res) => {
     res.status(500).json({ error: 'Failed to get carts' })
   }
 }
-
